@@ -31,9 +31,9 @@ func main() {
 	currencyHandler := newCurrencyHandlers()
 	currencyHandler.getCurrencyValue()
 
-	http.HandleFunc("/currency/all", currencyHandler.get)
+	http.HandleFunc("/currency/all", currencyHandler.getAllValues)
 	http.HandleFunc("/currency/", currencyHandler.getCurrency)
-	err := http.ListenAndServe(":8103", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +59,7 @@ func (h *currencyHandlers) getCurrencyValue() {
 	}
 }
 
-func (h *currencyHandlers) get(w http.ResponseWriter, r *http.Request) {
+func (h *currencyHandlers) getAllValues(w http.ResponseWriter, r *http.Request) {
 	currencies := make([]Currency, len(h.store))
 
 	i := 0
@@ -73,8 +73,6 @@ func (h *currencyHandlers) get(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}
-	//w.Header().Add("content-type", "application/json")
-	//w.WriteHeader(http.StatusOK)
 	w.Write(jsonBytes)
 }
 
@@ -95,8 +93,6 @@ func (h *currencyHandlers) getCurrency(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 		}
-		//w.Header().Add("content-type", "application/json")
-		//w.WriteHeader(http.StatusOK)
 		w.Write(jsonBytes)
 	}
 }
