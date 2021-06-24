@@ -23,29 +23,40 @@ type Currency struct {
 	Symbol      string `json:"symbol"`
 }
 
-/*type Currencies struct {
-	Currency Currency
-}*/
+type currencyHandlers struct {
+	store map[string]Currency
+}
 
 func main() {
 	currencyHandler := newCurrencyHandlers()
-	//symbol := "ETHBTC"
-	//if symbol == "ETHBTC" || symbol == "BTCUSD" {
 	currencyHandler.getCurrencyValue()
-	//} else {
-	//fmt.Println("Unsupported Symbols", symbol)
-	//}
 
 	http.HandleFunc("/currency/all", currencyHandler.get)
 	http.HandleFunc("/currency/", currencyHandler.getCurrency)
-	err := http.ListenAndServe(":8102", nil)
+	err := http.ListenAndServe(":8103", nil)
 	if err != nil {
 		panic(err)
 	}
 }
 
-type currencyHandlers struct {
-	store map[string]Currency
+func (h *currencyHandlers) getCurrencyValue() {
+	response, err := http.Get("https://api.hitbtc.com/api/2/public/ticker")
+	if err != nil {
+		fmt.Print(err.Error())
+		os.Exit(1)
+	}
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	currencies := make([]Currency, 0)
+	err = json.Unmarshal(responseData, &currencies)
+	for _, currency := range currencies {
+		if currency.Symbol == "BTCUSD" || currency.Symbol == "ETHBTC" {
+			currency.ID = currency.Symbol
+			h.store[currency.ID] = currency
+		}
+	}
 }
 
 func (h *currencyHandlers) get(w http.ResponseWriter, r *http.Request) {
@@ -94,34 +105,4 @@ func newCurrencyHandlers() *currencyHandlers {
 	return &currencyHandlers{
 		store: map[string]Currency{},
 	}
-}
-
-func (h *currencyHandlers) getCurrencyValue() {
-	//if symbol == "ETHBTC" || symbol == "BTCUSD" {
-	//response, err := http.Get("https://api.hitbtc.com/api/2/public/ticker/" + symbol)
-	response, err := http.Get("https://api.hitbtc.com/api/2/public/ticker")
-	if err != nil {
-		fmt.Print(err.Error())
-		os.Exit(1)
-	}
-	responseData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	currencies := make([]Currency, 0)
-	err = json.Unmarshal(responseData, &currencies)
-	for _, currency := range currencies {
-		if currency.Symbol == "BTCUSD" || currency.Symbol == "ETHBTC" {
-			currency.ID = currency.Symbol
-			fmt.Println(currency.Symbol)
-			h.store[currency.ID] = currency
-		}
-	}
-
-	//var responseObject Currency
-	//json.Unmarshal(responseData, &responseObject)
-	//fmt.Println(string(responseData))
-	/*} else {
-		fmt.Println("Unsupported Symbols", symbol)
-	}*/
 }
