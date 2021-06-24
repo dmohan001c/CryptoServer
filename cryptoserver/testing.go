@@ -23,8 +23,25 @@ type Currency struct {
 	Symbol      string `json:"symbol"`
 }
 
-type Currencies struct {
+/*type Currencies struct {
 	Currency Currency
+}*/
+
+func main() {
+	currencyHandler := newCurrencyHandlers()
+	//symbol := "ETHBTC"
+	//if symbol == "ETHBTC" || symbol == "BTCUSD" {
+	currencyHandler.getCurrencyValue()
+	//} else {
+	//fmt.Println("Unsupported Symbols", symbol)
+	//}
+
+	http.HandleFunc("/currency/all", currencyHandler.get)
+	http.HandleFunc("/currency/", currencyHandler.getCurrency)
+	err := http.ListenAndServe(":8102", nil)
+	if err != nil {
+		panic(err)
+	}
 }
 
 type currencyHandlers struct {
@@ -76,22 +93,6 @@ func (h *currencyHandlers) getCurrency(w http.ResponseWriter, r *http.Request) {
 func newCurrencyHandlers() *currencyHandlers {
 	return &currencyHandlers{
 		store: map[string]Currency{},
-	}
-}
-func main() {
-	currencyHandler := newCurrencyHandlers()
-	//symbol := "ETHBTC"
-	//if symbol == "ETHBTC" || symbol == "BTCUSD" {
-	currencyHandler.getCurrencyValue()
-	//} else {
-	//fmt.Println("Unsupported Symbols", symbol)
-	//}
-
-	http.HandleFunc("/currency/all", currencyHandler.get)
-	http.HandleFunc("/currency/", currencyHandler.getCurrency)
-	err := http.ListenAndServe(":8102", nil)
-	if err != nil {
-		panic(err)
 	}
 }
 
